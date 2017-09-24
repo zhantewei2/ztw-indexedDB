@@ -1,0 +1,17 @@
+{
+  "name": "ztw-indexeddb",
+  "version": "1.0.0",
+  "description": "indexeddb",
+  "main": "index.js",
+  "scripts": {
+    "genDB": "tsc -d --lib es6,dom index --outDir dist"
+  },
+  "keywords": [
+    "indexeddb",
+    "index",
+    "dataBase",
+    "db"
+  ],
+  "author": "zhantewei",
+  "license": "ISC"
+}
