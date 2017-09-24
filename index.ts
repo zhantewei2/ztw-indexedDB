@@ -1,5 +1,5 @@
 import {inheritMethod} from './method/method';
-
+import {Subject} from './util';
 import {filterModel,initTypeDB} from './model';
 import {DBOpts,CollectionOpts,InitItemOpts} from './config';
 
@@ -8,11 +8,13 @@ export class IndexDB{
     destroy:Function;
     db:any;
     storeModels:any={};
-    models:any={};
+    models:any;
+    use:Function;
     constructor(dataName:string,opts:DBOpts){
         const
         version=opts.version,
         indexDB=(window as any).indexedDB,
+        initSub=new Subject(),
         getModel=(modelName:string)=>this.db.transaction(modelName, 'readwrite').objectStore(modelName),
         newModel=(modelName:string,opts:CollectionOpts)=> {
           const objectStore=this.db.createObjectStore(modelName, {keyPath: opts.keyPath});
@@ -29,12 +31,7 @@ export class IndexDB{
         this.init=(initItemsOpts:Array<InitItemOpts>):any=>{
             return new Promise((resolve)=>{
                 const req=indexDB.open(dataName,version);
-                //define modelObj:
-                initItemsOpts.forEach((i:InitItemOpts)=>{
-                  Object.defineProperty(this.models,i.name,{
-                    get:()=>this.storeModels[i.name]||(this.storeModels[i.name]=initModel(i.name,i.opts))
-                  })
-                });
+
                 req.onupgradeneeded=(e:any)=>{
                     this.db=req.result;
                     initItemsOpts.forEach((i:InitItemOpts)=>{
@@ -43,9 +40,22 @@ export class IndexDB{
                 };
                 req.onsuccess=(e:any)=>{
                     this.db=req.result;
+                    this.models={};
+                    //define modelObj:
+                    initItemsOpts.forEach((i:InitItemOpts)=>{
+                        Object.defineProperty(this.models,i.name,{
+                            get:()=>this.storeModels[i.name]||(this.storeModels[i.name]=initModel(i.name,i.opts))
+                        })
+                    });
+                    initSub.next();
                     resolve(this.models);
                 };
             })
         };
+        this.use=(modelName:string)=>{
+            return new Promise((resolve)=>{
+                this.models?resolve(this.models[modelName]):initSub.subscribe(()=>resolve(this.models[modelName]));
+            })
+        }
     }
 }
