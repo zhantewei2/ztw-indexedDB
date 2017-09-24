@@ -78,7 +78,7 @@ removeAll | (cb)
 upsert | (`partialDoc` or `fullDoc`,cb)
 size | (cb)
 purePut | (fullDoc,cb)
-useCursor | (`cursorOps`,cb)
+useCursor | (`cursorOpts`,cb)
 genKey | (obj:{}):string
 ... | include all objectStore method
 
